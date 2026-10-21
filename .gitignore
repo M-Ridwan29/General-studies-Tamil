@@ -1,0 +1,7 @@
+# Ignore large raw PDF source (all 999 pages are already extracted and optimized in assets/pages)
+*.pdf
+
+# Temporary files
+temp_inspect/
+.DS_Store
+Thumbs.db
