@@ -10,11 +10,10 @@ const AppState = {
   userAnswers: {},          // { qNo: 'A' | 'B' | 'C' | 'D' | 'E' }
   flaggedQuestions: {},     // { qNo: boolean }
   visitedQuestions: new Set(),
+  checkedQuestions: new Set(), // questions where answer has been revealed
   examTimer: null,
   timerSecondsLeft: 0,
   isPaused: false,
-  zoomLevel: 1.0,
-  viewMode: 'both',         // 'both' | 'paper' | 'text'
   selectedYear: 'all',
   searchQuery: '',
   theme: localStorage.getItem('tnpsc_theme') || 'light',
@@ -99,13 +98,6 @@ function setupEventListeners() {
   document.getElementById('clearResponseBtn').addEventListener('click', clearCurrentResponse);
   document.getElementById('endExamBtn').addEventListener('click', promptSubmitExam);
   document.getElementById('revealAnswerBtn').addEventListener('click', toggleRevealAnswer);
-  document.getElementById('viewToggleBtn').addEventListener('click', toggleViewMode);
-
-  // Image Zoom
-  document.getElementById('zoomInBtn').addEventListener('click', () => adjustZoom(0.2));
-  document.getElementById('zoomOutBtn').addEventListener('click', () => adjustZoom(-0.2));
-  document.getElementById('zoomResetBtn').addEventListener('click', () => { AppState.zoomLevel = 1.0; applyZoom(); });
-
   // Modal Submit Controls
   document.getElementById('confirmSubmitBtn').addEventListener('click', finalizeExam);
   document.getElementById('cancelSubmitBtn').addEventListener('click', closeModal);
@@ -119,6 +111,8 @@ function setupEventListeners() {
     AppState.testMode = 'practice';
     document.getElementById('testModeBadge').innerText = 'பயிற்சி முறை (Review Mode)';
     document.getElementById('revealAnswerBtn').style.display = 'inline-flex';
+    // Reveal all answers in review mode
+    AppState.questions.forEach(q => AppState.checkedQuestions.add(q.qNo));
     renderCurrentQuestion();
   });
 
@@ -334,6 +328,7 @@ function startExam(setId, mode = 'exam') {
   AppState.userAnswers = {};
   AppState.flaggedQuestions = {};
   AppState.visitedQuestions = new Set();
+  AppState.checkedQuestions = new Set();
   AppState.visitedQuestions.add(1);
 
   // UI Setup
@@ -416,7 +411,7 @@ function renderCurrentQuestion() {
 
   const selectedAnswer = AppState.userAnswers[q.qNo];
   const isPracticeMode = AppState.testMode === 'practice';
-  const showMarkedAnswer = isPracticeMode && document.getElementById('explanationCard').classList.contains('show');
+  const isChecked = isPracticeMode && AppState.checkedQuestions.has(q.qNo);
 
   ['A', 'B', 'C', 'D', 'E'].forEach(optKey => {
     if (q.options && q.options[optKey]) {
@@ -425,8 +420,12 @@ function renderCurrentQuestion() {
       if (selectedAnswer === optKey) {
         optDiv.classList.add('selected');
       }
-      if (showMarkedAnswer && optKey === q.answer) {
-        optDiv.classList.add('correct-answer');
+      if (isChecked) {
+        if (optKey === q.answer) {
+          optDiv.classList.add('correct-answer');
+        } else if (selectedAnswer === optKey && selectedAnswer !== q.answer) {
+          optDiv.classList.add('wrong-answer');
+        }
       }
 
       optDiv.innerHTML = `
@@ -441,17 +440,23 @@ function renderCurrentQuestion() {
   // Explanation
   const expCard = document.getElementById('explanationCard');
   const expText = document.getElementById('explanationText');
-  expText.innerText = q.explanation || `${AppState.currentSet.title} அசல் வினாத்தாளில் விடை குறிக்கப்பட்டுள்ளது.`;
+  const revealBtn = document.getElementById('revealAnswerBtn');
 
-  // Visual Paper Scanned Page View
-  const paperImg = document.getElementById('visualPaperImg');
-  const pageNoDisplay = document.getElementById('paperPageNo');
-  
-  paperImg.src = q.imagePath;
-  pageNoDisplay.innerText = `அசல் வினாத்தாள் பக்கம்: ${q.page} / 999`;
-
-  // Apply zoom
-  applyZoom();
+  if (isChecked) {
+    expCard.classList.add('show');
+    expText.innerText = q.explanation || `சரியான விடை: (${q.answer})`;
+    if (revealBtn) {
+      revealBtn.innerText = 'விடையை மறை (Hide Answer)';
+      revealBtn.className = 'btn btn-outline';
+    }
+  } else {
+    expCard.classList.remove('show');
+    expText.innerText = '';
+    if (revealBtn) {
+      revealBtn.innerText = 'விடை சரிபார் (Check Answer)';
+      revealBtn.className = 'btn btn-success';
+    }
+  }
 
   // Navigation buttons state
   document.getElementById('prevQuestionBtn').disabled = AppState.currentIndex === 0;
@@ -460,26 +465,18 @@ function renderCurrentQuestion() {
   updatePaletteItem(q.qNo);
 }
 
-// Select an option
+// Select an option (Keep answer hidden until user decides to check)
 function selectOption(key) {
   const q = AppState.questions[AppState.currentIndex];
   AppState.userAnswers[q.qNo] = key;
   renderCurrentQuestion();
-
-  // In practice mode, automatically reveal explanation
-  if (AppState.testMode === 'practice') {
-    document.getElementById('explanationCard').classList.add('show');
-    // Check if wrong, record to mistake bank
-    if (key !== q.answer) {
-      recordMistake(q, key);
-    }
-  }
 }
 
 // Clear current response
 function clearCurrentResponse() {
   const q = AppState.questions[AppState.currentIndex];
   delete AppState.userAnswers[q.qNo];
+  AppState.checkedQuestions.delete(q.qNo);
   renderCurrentQuestion();
 }
 
@@ -490,42 +487,19 @@ function toggleFlagCurrentQuestion() {
   renderCurrentQuestion();
 }
 
-// Toggle Reveal Answer
+// Toggle Reveal / Check Answer
 function toggleRevealAnswer() {
-  const expCard = document.getElementById('explanationCard');
-  expCard.classList.toggle('show');
+  const q = AppState.questions[AppState.currentIndex];
+  if (AppState.checkedQuestions.has(q.qNo)) {
+    AppState.checkedQuestions.delete(q.qNo);
+  } else {
+    AppState.checkedQuestions.add(q.qNo);
+    const userChoice = AppState.userAnswers[q.qNo];
+    if (userChoice && userChoice !== q.answer) {
+      recordMistake(q, userChoice);
+    }
+  }
   renderCurrentQuestion();
-}
-
-// Toggle View Mode (Visual paper vs text)
-function toggleViewMode() {
-  const paperContainer = document.getElementById('visualPaperContainer');
-  const textOptions = document.getElementById('optionsContainer');
-  
-  if (AppState.viewMode === 'both') {
-    AppState.viewMode = 'paper';
-    paperContainer.style.display = 'block';
-    paperContainer.style.maxHeight = '800px';
-  } else if (AppState.viewMode === 'paper') {
-    AppState.viewMode = 'both';
-    paperContainer.style.display = 'block';
-    paperContainer.style.maxHeight = '520px';
-  }
-  showToast(`பார்வை முறை மாற்றப்பட்டது: ${AppState.viewMode}`);
-}
-
-// Zoom controls
-function adjustZoom(delta) {
-  AppState.zoomLevel = Math.max(0.6, Math.min(2.5, AppState.zoomLevel + delta));
-  applyZoom();
-}
-
-function applyZoom() {
-  const paperImg = document.getElementById('visualPaperImg');
-  if (paperImg) {
-    paperImg.style.transform = `scale(${AppState.zoomLevel})`;
-    paperImg.style.transformOrigin = 'top center';
-  }
 }
 
 // Navigation

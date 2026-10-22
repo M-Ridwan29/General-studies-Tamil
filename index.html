@@ -41,31 +41,11 @@
          ====================================================================== -->
     <section class="dashboard-view" id="dashboardView">
       
-      <!-- Hero Banner -->
+      <!-- Simple Header Banner -->
       <div class="dashboard-hero">
         <div class="hero-content">
-          <span class="hero-tag">TNPSC Official Question Bank</span>
-          <h2 class="hero-title">அரசுப் பணியாளர் தேர்வாணையம் - பொதுத் தமிழ்</h2>
-          <p class="hero-subtitle">2012 முதல் 2025 வரை நடைபெற்ற 38 அரசுத் தேர்வுகள், 999 பக்கங்கள் மற்றும் விடை குறிக்கப்பட்ட 3,800-க்கும் மேற்பட்ட அசல் வினாக்களுடன் கூடிய முழுமையான பயிற்சித் தளம்.</p>
-          
-          <div class="hero-stats">
-            <div class="stat-item">
-              <div class="stat-val">38</div>
-              <div class="stat-label">வினாத்தாள்கள் (Sets)</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-val">999</div>
-              <div class="stat-label">அசல் பக்கங்கள் (Pages)</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-val">3,800+</div>
-              <div class="stat-label">மொத்த வினாக்கள் (Questions)</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-val">100%</div>
-              <div class="stat-label">குறிக்கப்பட்ட விடைகள் (Marked Keys)</div>
-            </div>
-          </div>
+          <h2 class="hero-title">TNPSC பொதுத் தமிழ் - மாதிரித் தேர்வு & பயிற்சி</h2>
+          <p class="hero-subtitle">2012 - 2025 அசல் வினாத்தாள்களின் தொகுப்பு. நேரடித் தேர்வு அல்லது பயிற்சி முறையில் எளிதாகப் பழகலாம்.</p>
         </div>
       </div>
 
@@ -114,7 +94,7 @@
     </section>
 
     <!-- ======================================================================
-         VIEW 2: TEST SCREEN (AWS EXAM PORTAL)
+         VIEW 2: TEST SCREEN (CLEAN, DISTRACTION-FREE PRACTICE & EXAM)
          ====================================================================== -->
     <section class="test-view" id="testView">
       <div class="test-container">
@@ -125,12 +105,11 @@
           <!-- Header -->
           <div class="question-panel-header">
             <span class="q-badge" id="questionBadge">வினா எண்: 1 / 100</span>
-            <span id="currentExamTitle" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); max-width: 320px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></span>
+            <span id="currentExamTitle" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); max-width: 380px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></span>
             
             <div class="q-actions-top">
               <button class="btn-flag" id="flagQuestionBtn">🏳️ மீள்பார்வைக்குக் குறி (Flag)</button>
               <button class="btn-flag" id="bookmarkBtn">☆ Bookmark</button>
-              <button class="view-toggle-btn" id="viewToggleBtn" title="பார்வை முறை மாற்றுக">🔄 பார்வை முறை</button>
             </div>
           </div>
 
@@ -143,23 +122,12 @@
             <!-- Options -->
             <div class="options-list" id="optionsContainer"></div>
 
-            <!-- Practice Mode Explanation Card -->
+            <!-- Practice Mode Explanation Card (Hidden by default, revealed on click) -->
             <div class="explanation-card" id="explanationCard">
               <div class="explanation-header">
-                <span>✓ குறிக்கப்பட்ட சரியான விடை & விளக்கம் (Marked Answer & Solution)</span>
+                <span>✓ சரியான விடை & விளக்கம் (Answer & Explanation)</span>
               </div>
               <div id="explanationText"></div>
-            </div>
-
-            <!-- Scanned Original Question Paper Card -->
-            <div class="visual-paper-container" id="visualPaperContainer">
-              <div class="visual-paper-controls">
-                <span id="paperPageNo" style="color: #cbd5e1; font-size: 0.8rem; margin-right: auto; align-self: center;">அசல் வினாத்தாள் பக்கம்: 1 / 999</span>
-                <button class="zoom-btn" id="zoomOutBtn">🔍 -</button>
-                <button class="zoom-btn" id="zoomResetBtn">Reset</button>
-                <button class="zoom-btn" id="zoomInBtn">🔍 +</button>
-              </div>
-              <img id="visualPaperImg" class="paper-img" src="" alt="அசல் வினாத்தாள் பக்கம் (Original Question Paper Scan)">
             </div>
 
           </div>
@@ -168,7 +136,7 @@
           <div class="question-panel-footer">
             <div class="footer-left">
               <button class="btn btn-outline" id="clearResponseBtn">பதிலை நீக்கு (Clear)</button>
-              <button class="btn btn-outline" id="revealAnswerBtn" style="display: none;">விடை காட்டு (Show Answer)</button>
+              <button class="btn btn-success" id="revealAnswerBtn" style="display: none;">விடை சரிபார் (Check Answer)</button>
             </div>
 
             <div class="footer-right">
