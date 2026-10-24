@@ -3487,6 +3487,18 @@ function getQuestionsForExamSet(setId) {
   }
 
   const examSet = EXAM_SETS.find(s => s.id === normId) || EXAM_SETS[0];
+
+  // Dedicated authentic question papers for Group 2 & Group 2A sets
+  if (typeof GROUP_2_PAPERS !== 'undefined' && GROUP_2_PAPERS[normId]) {
+    return GROUP_2_PAPERS[normId].map((q, idx) => ({
+      ...q,
+      qNo: idx + 1,
+      setId: examSet.id,
+      year: examSet.year,
+      paperCode: examSet.code
+    }));
+  }
+
   const total = examSet.totalQuestions || 100;
   
   // Combine all verified authentic questions into one large pool
